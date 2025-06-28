@@ -4,36 +4,35 @@ import uuid
 import subprocess
 from utils.user_utils import get_user_metadata
 
-
+# Return thumbnail path based on user ID
 def get_thumb_path(user_id):
-    return f"thumbnails/{user_id}.jpg"
+    return f"downloads/thumb_{user_id}.jpg"  # you can adjust this path if needed
 
-
+# Generate a clean and formatted filename using a pattern
 def generate_filename(original, user_id, pattern="{original}_{number}", counter=1):
     base, ext = os.path.splitext(original)
-    base = re.sub(r'[<>:"/\\|?*]', '', base)  # Remove invalid characters
+    base = re.sub(r'[<>:"/\\|?*]', '', base)  # Remove invalid characters for file names
     filename = pattern.replace("{original}", base).replace("{number}", str(counter))
     return filename + ext
 
-
+# Check if file is a video
 def is_video(filename):
     return filename.lower().endswith((".mp4", ".mkv", ".mov", ".avi"))
 
-
+# Check if file is a PDF
 def is_pdf(filename):
     return filename.lower().endswith(".pdf")
 
-
+# Allow all files (you can add your own filters if needed)
 def is_supported(filename):
-    return True  # Allow all file types
+    return True
 
-
+# Use ffmpeg to remux audio/subtitle metadata and add user tag
 def remux_with_metadata(input_path, output_path, user_id):
     user_tag = get_user_metadata(user_id)
     if not user_tag:
         return False
 
-    # Get subtitle/audio stream info using ffprobe
     try:
         result = subprocess.run(
             ["ffprobe", "-v", "error", "-select_streams", "s,a",
@@ -49,7 +48,6 @@ def remux_with_metadata(input_path, output_path, user_id):
         print("ffprobe failed:", e)
         return False
 
-    # Build ffmpeg args to modify metadata
     ffmpeg_args = ["ffmpeg", "-i", input_path, "-map", "0", "-c", "copy"]
     for stream in streams:
         index = stream.get("index")
@@ -69,7 +67,7 @@ def remux_with_metadata(input_path, output_path, user_id):
         print("ffmpeg metadata remux failed:", e)
         return False
 
-
+# Remove temporary files
 def cleanup_temp_files(*paths):
     for path in paths:
         try:
