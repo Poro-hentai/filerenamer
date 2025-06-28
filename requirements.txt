@@ -1,5 +1,6 @@
 python-telegram-bot==20.8
-telegraph==1.5.0
+telegraph==2.2.0
 pillow
 pdf2image
+flask
 
