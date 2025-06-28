@@ -31,4 +31,3 @@ if __name__ == "__main__":
     # File handler
     app.add_handler(MessageHandler(filters.Document.ALL | filters.VIDEO, file_handler))
     app.run_polling(drop_pending_updates=True)
-
