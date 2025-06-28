@@ -4,20 +4,29 @@ import uuid
 import subprocess
 from utils.user_utils import get_user_metadata
 
+
+def get_thumb_path(user_id):
+    return f"thumbnails/{user_id}.jpg"
+
+
 def generate_filename(original, user_id, pattern="{original}_{number}", counter=1):
     base, ext = os.path.splitext(original)
     base = re.sub(r'[<>:"/\\|?*]', '', base)  # Remove invalid characters
     filename = pattern.replace("{original}", base).replace("{number}", str(counter))
     return filename + ext
 
+
 def is_video(filename):
     return filename.lower().endswith((".mp4", ".mkv", ".mov", ".avi"))
+
 
 def is_pdf(filename):
     return filename.lower().endswith(".pdf")
 
+
 def is_supported(filename):
     return True  # Allow all file types
+
 
 def remux_with_metadata(input_path, output_path, user_id):
     user_tag = get_user_metadata(user_id)
@@ -60,6 +69,7 @@ def remux_with_metadata(input_path, output_path, user_id):
         print("ffmpeg metadata remux failed:", e)
         return False
 
+
 def cleanup_temp_files(*paths):
     for path in paths:
         try:
@@ -67,4 +77,3 @@ def cleanup_temp_files(*paths):
                 os.remove(path)
         except Exception as e:
             print(f"Error cleaning up {path}: {e}")
-
