@@ -4,14 +4,15 @@ import asyncio
 from telegram import Update
 from telegram.ext import ContextTypes
 from utils.user_utils import (
-    register_user, get_user_pattern, get_user_metadata,
-    get_thumb_path
+    register_user, get_user_pattern, get_user_metadata
 )
+from utils.thumb_utils import get_thumb_path
 from utils.file_utils import (
     generate_filename, is_video, is_pdf,
     remux_with_metadata, cleanup_temp_files
 )
 from utils.episode_quality import extract_episode_quality
+
 
 # Channel to upload and re-fetch from
 CHANNEL_ID = -1002641723741
