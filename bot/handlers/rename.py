@@ -1,52 +1,54 @@
-from pyrogram import Client, filters
-import json
 import os
-import re
+from pyrogram import Client, filters
+from pyrogram.types import Message
+from bot.plugins.thumb import get_thumb
+import time
 
-users_file = "users.json"
-
-def load_users():
-    if os.path.exists(users_file):
-        with open(users_file, "r") as f:
-            return json.load(f)
-    return {}
-
-def save_users(data):
-    with open(users_file, "w") as f:
-        json.dump(data, f, indent=2)
-
-@Client.on_message(filters.command("autorename"))
-async def toggle_autorename(client, message):
-    users = load_users()
-    user_id = str(message.from_user.id)
-    
-    if "on" in message.text:
-        users[user_id] = users.get(user_id, {})
-        users[user_id]["autorename"] = True
-        await message.reply("✅ Auto renaming is now **ON**.")
-    elif "off" in message.text:
-        users[user_id] = users.get(user_id, {})
-        users[user_id]["autorename"] = False
-        await message.reply("❌ Auto renaming is now **OFF**.")
-    else:
-        await message.reply("Usage: `/autorename on` or `/autorename off`")
-    
-    save_users(users)
+DOWNLOADS = "downloads"
+os.makedirs(DOWNLOADS, exist_ok=True)
 
 @Client.on_message(filters.document | filters.video | filters.audio)
-async def handle_media(client, message):
-    users = load_users()
-    user_id = str(message.from_user.id)
-    
-    file = message.document or message.video or message.audio
-    original_name = file.file_name
-    
-    if user_id not in users or not users[user_id].get("autorename"):
-        return  # Auto rename off, ignore
+async def rename_file(client: Client, message: Message):
+    user_id = message.from_user.id
+    media = message.document or message.video or message.audio
 
-    clean_name = re.sub(r'@\w+', '', original_name)  # remove usernames like @lordshadow
-    await message.copy(
-        chat_id=message.chat.id,
-        caption=f"Renamed: `{clean_name}`"
+    original_file_name = media.file_name
+    original_file_size = media.file_size
+
+    status = await message.reply_text("⏳ Starting download...")
+
+    start_time = time.time()
+    downloaded_path = await message.download(file_name=f"{DOWNLOADS}/{original_file_name}")
+    end_time = time.time()
+
+    await status.edit_text(f"✅ Downloaded in {int(end_time - start_time)} seconds.\n\n🔁 Renaming file...")
+
+    # Simple renaming logic (you can replace with your own logic or command-based name)
+    new_name = original_file_name.replace(" ", "_")
+    renamed_path = os.path.join(DOWNLOADS, new_name)
+    os.rename(downloaded_path, renamed_path)
+
+    thumb_path = get_thumb(user_id)
+
+    async def progress(current, total):
+        percent = int(current * 100 / total)
+        bar = "▓" * (percent // 10) + "░" * (10 - percent // 10)
+        try:
+            await status.edit_text(f"📤 Uploading...\n[{bar}] {percent}%")
+        except:
+            pass
+
+    await message.reply_document(
+        document=renamed_path,
+        caption=f"✅ Renamed to: `{new_name}`",
+        thumb=thumb_path if thumb_path else None,
+        progress=progress
     )
 
+    await status.delete()
+
+    # Optional cleanup
+    try:
+        os.remove(renamed_path)
+    except Exception as e:
+        print(f"Cleanup failed: {e}")
