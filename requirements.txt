@@ -1,6 +1,0 @@
-python-telegram-bot==20.8
-telegraph==2.2.0
-pillow
-pdf2image
-flask
-
