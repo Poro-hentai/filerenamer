@@ -1,13 +1,12 @@
-
 import os
 
 class Config:
-    API_ID = int(os.getenv("API_ID"))
-    API_HASH = os.getenv("API_HASH")
-    BOT_TOKEN = os.getenv("BOT_TOKEN")
-    BOT_USERNAME = os.getenv("BOT_USERNAME", "your_bot_username")
-    ADMIN_ID = int(os.getenv("ADMIN_ID"))
-    PRIVATE_CHANNEL_ID = int(os.getenv("PRIVATE_CHANNEL_ID"))
+    API_ID = int(os.getenv("API_ID", "23454999"))
+    API_HASH = os.getenv("API_HASH", "58ba01dde6198b22a48b2f839b5346eb")
+    BOT_TOKEN = os.getenv("BOT_TOKEN", "7363840731:AAHmxAoxl_VPrq3mbFT-Okjq4T5O6jRtHWE")
+    ADMIN_ID = int(os.getenv("ADMIN_ID", "5759232282"))
+    PRIVATE_CHANNEL_ID = int(os.getenv("PRIVATE_CHANNEL_ID", "-1002453946876"))
+
 
     START_TEXT = "👋 Welcome to the Renaming Bot!\nUse /help to know commands."
     HELP_TEXT = """📚 **Bot Commands:**
