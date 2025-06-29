@@ -1,5 +1,5 @@
 import asyncio
-from pyrogram import Client
+from pyrogram import Client, idle
 from config import Config
 import os
 
@@ -16,7 +16,7 @@ async def main():
     await bot.start()
     print("🤖 Bot is running...")
     await idle()
+    await bot.stop()
 
 if __name__ == "__main__":
-    from pyrogram.idle import idle
     asyncio.run(main())
