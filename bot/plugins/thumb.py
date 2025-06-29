@@ -1,9 +1,13 @@
-
-import os, json
+import os
+import json
 from pyrogram import Client, filters
 from pyrogram.types import Message
 
 THUMB_FILE = "thumb.json"
+DOWNLOAD_DIR = "downloads"
+
+# Make downloads folder if not exists
+os.makedirs(DOWNLOAD_DIR, exist_ok=True)
 
 def save_thumb(user_id, file_path):
     thumbs = {}
@@ -15,16 +19,22 @@ def save_thumb(user_id, file_path):
         json.dump(thumbs, f)
 
 def get_thumb(user_id):
-    if not os.path.exists(THUMB_FILE): return None
+    if not os.path.exists(THUMB_FILE):
+        return None
     with open(THUMB_FILE, "r") as f:
         thumbs = json.load(f)
     return thumbs.get(str(user_id))
 
 def del_thumb(user_id):
-    if not os.path.exists(THUMB_FILE): return False
+    if not os.path.exists(THUMB_FILE):
+        return False
     with open(THUMB_FILE, "r") as f:
         thumbs = json.load(f)
     if str(user_id) in thumbs:
+        try:
+            os.remove(thumbs[str(user_id)])
+        except:
+            pass
         del thumbs[str(user_id)]
         with open(THUMB_FILE, "w") as f:
             json.dump(thumbs, f)
@@ -34,13 +44,13 @@ def del_thumb(user_id):
 @Client.on_message(filters.command("setthumb") & filters.photo)
 async def set_thumb_cmd(c, m: Message):
     user_id = m.from_user.id
-    file = await m.download(file_name=f"downloads/thumb_{user_id}.jpg")
+    file = await m.download(file_name=f"{DOWNLOAD_DIR}/thumb_{user_id}.jpg")
     save_thumb(user_id, file)
     await m.reply("✅ Thumbnail saved!")
 
 @Client.on_message(filters.command("setthumb") & ~filters.photo)
 async def no_photo_thumb(c, m: Message):
-    await m.reply("📸 Send a photo with the command /setthumb")
+    await m.reply("📸 Please send a photo with /setthumb command.")
 
 @Client.on_message(filters.command("seethumb"))
 async def see_thumb(c, m: Message):
@@ -60,6 +70,6 @@ async def del_thumb_cmd(c, m: Message):
 @Client.on_message(filters.photo & ~filters.command(["setthumb"]))
 async def auto_thumb_set(c, m: Message):
     user_id = m.from_user.id
-    file = await m.download(file_name=f"downloads/thumb_{user_id}.jpg")
+    file = await m.download(file_name=f"{DOWNLOAD_DIR}/thumb_{user_id}.jpg")
     save_thumb(user_id, file)
     await m.reply("✅ Thumbnail auto-set from photo.")
